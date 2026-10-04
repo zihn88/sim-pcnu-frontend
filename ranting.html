@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Data Ranting NU - SIM PCNU Gresik</title>
+    <link rel="stylesheet" href="css/style.css">
+    <style>
+        .table-responsive { width: 100%; overflow-x: auto; }
+        .table { width: 100%; border-collapse: collapse; text-align: left; font-size: 14px; }
+        .table th, .table td { padding: 12px 16px; border-bottom: 1px solid var(--border); }
+        .table th { background-color: #F9FAFB; font-weight: 600; color: var(--text-muted); }
+        .table tr:hover { background-color: #F3F4F6; }
+        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); display: flex; justify-content: center; align-items: center; opacity: 0; visibility: hidden; transition: 0.3s; z-index: 1000; }
+        .modal-overlay.active { opacity: 1; visibility: visible; }
+        .modal-content { background: white; width: 500px; border-radius: var(--radius); padding: 24px; max-height: 90vh; overflow-y: auto; }
+        .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; font-weight: 600; font-size: 18px;}
+        .close-btn { cursor: pointer; color: var(--danger); font-weight: bold; border: none; background: none; font-size: 18px;}
+        .badge { padding: 4px 8px; border-radius: 4px; font-size: 12px; font-weight: 600; }
+        .badge-success { background: #D1FAE5; color: #065F46; }
+        .badge-mwc { background: #DBEAFE; color: #1E40AF; }
+        .empty-state { text-align: center; padding: 40px; color: var(--text-muted); }
+    </style>
+</head>
+<body>
+
+    <div class="app-container">
+        <!-- SIDEBAR -->
+        <aside class="sidebar">
+            <div class="sidebar-header">SIM-PCNU Gresik</div>
+            <ul class="nav-menu">
+                <li><a href="index.html">📊 Dashboard</a></li>
+                <li><a href="mwcnu.html">🏢 Data MWCNU</a></li>
+                <li><a href="ranting.html" class="active">🏠 Data Ranting NU</a></li>
+                <li><a href="surat.html">✉️ Arsip Surat</a></li>
+            </ul>
+        </aside>
+
+        <!-- MAIN CONTENT -->
+        <main class="main-content">
+            <header class="topbar">
+                <div class="page-title"><h2>Data Kepengurusan Ranting NU</h2></div>
+                <div class="user-profile">
+                    <span id="user_name" style="font-weight: 600; margin-right:16px;">Admin</span>
+                    <button onclick="logout()" class="btn" style="background: #F3F4F6; color: var(--danger);">Keluar</button>
+                </div>
+            </header>
+
+            <section class="content-area">
+                <div class="card">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+                        <input type="text" id="searchInput" class="form-control" placeholder="Cari nama Ranting..." style="width: 300px;" onkeyup="filterTable()">
+                        <button class="btn btn-primary" onclick="openModal()">+ Tambah Data Ranting</button>
+                    </div>
+
+                    <div class="table-responsive">
+                        <table class="table" id="dataTable">
+                            <thead>
+                                <tr>
+                                    <th>No</th>
+                                    <th>Nama Ranting</th>
+                                    <th>Kecamatan (MWC)</th>
+                                    <th>Ketua</th>
+                                    <th>Masa Khidmat</th>
+                                    <th>SK</th>
+                                    <th>Aksi</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tableBody">
+                                <tr><td colspan="7" style="text-align:center;"><div class="spinner" style="border-color:var(--primary); border-top-color:transparent;"></div> Memuat data...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- MODAL FORM -->
+    <div class="modal-overlay" id="formModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <span id="modalTitle">Tambah Data Ranting NU</span>
+                <button class="close-btn" onclick="closeModal()">X</button>
+            </div>
+            <form id="dataForm">
+                <div class="form-group">
+                    <label class="form-label">Pilih MWCNU Induk</label>
+                    <select id="id_mwc" class="form-control" required>
+                        <option value="">-- Sedang memuat data MWC... --</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Nama Ranting NU (Desa/Kel)</label>
+                    <input type="text" id="nama_ranting" class="form-control" placeholder="Contoh: Ranting Suci" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Rais Syuriyah</label>
+                    <input type="text" id="rais" class="form-control" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Katib</label>
+                    <input type="text" id="katib" class="form-control" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Ketua Tanfidziyah</label>
+                    <input type="text" id="ketua" class="form-control" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Sekretaris</label>
+                    <input type="text" id="sekretaris" class="form-control" required>
+                </div>
+                <div style="display: flex; gap: 16px;">
+                    <div class="form-group" style="flex: 1;">
+                        <label class="form-label">Masa Khidmat Mulai</label>
+                        <input type="date" id="masa_mulai" class="form-control" required>
+                    </div>
+                    <div class="form-group" style="flex: 1;">
+                        <label class="form-label">Masa Khidmat Akhir</label>
+                        <input type="date" id="masa_akhir" class="form-control" required>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Upload Scan SK (PDF, Maks 3MB)</label>
+                    <input type="file" id="sk_file" class="form-control" accept="application/pdf">
+                </div>
+                
+                <div style="text-align: right; margin-top: 24px;">
+                    <button type="button" class="btn" style="background: #E5E7EB;" onclick="closeModal()">Batal</button>
+                    <button type="submit" id="btnSubmit" class="btn btn-primary">Simpan Data</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script src="js/api.js"></script>
+    <script>
+        checkAuth();
+
+        const role = sessionStorage.getItem('sim_role');
+        let rantingData = [];
+        let mwcMap = {}; // Untuk mapping ID MWC ke Nama MWC
+
+        function getBase64(file) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.readAsDataURL(file);
+                reader.onload = () => resolve(reader.result);
+                reader.onerror = error => reject(error);
+            });
+        }
+
+        async function initPage() {
+            // 1. Ambil data MWC dulu untuk dropdown dan mapping
+            const resMWC = await fetchAPI('get_mwcnu');
+            const selectMwc = document.getElementById('id_mwc');
+            selectMwc.innerHTML = '<option value="">-- Pilih MWCNU --</option>';
+
+            if (resMWC && resMWC.success) {
+                resMWC.data.forEach(mwc => {
+                    mwcMap[mwc.id_mwc] = mwc.nama_mwc;
+                    selectMwc.innerHTML += `<option value="${mwc.id_mwc}">${mwc.nama_mwc}</option>`;
+                });
+            }
+
+            // 2. Ambil data Ranting
+            loadData();
+        }
+
+        async function loadData() {
+            const tbody = document.getElementById('tableBody');
+            const res = await fetchAPI('get_ranting');
+            
+            if (res && res.success) {
+                rantingData = res.data;
+                renderTable(rantingData);
+            } else {
+                tbody.innerHTML = `<tr><td colspan="7" class="empty-state">Gagal memuat data.</td></tr>`;
+            }
+        }
+
+        function renderTable(data) {
+            const tbody = document.getElementById('tableBody');
+            tbody.innerHTML = '';
+
+            if (data.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="7" class="empty-state">Belum ada data Ranting.</td></tr>`;
+                return;
+            }
+
+            data.forEach((item, index) => {
+                let btnHapus = role === 'SUPERADMIN' ? `<button class="btn" style="background:var(--danger); color:white; padding:4px 8px; font-size:12px;" onclick="hapusData(${item._row})">Hapus</button>` : '';
+                let linkSK = item.sk_file_url ? `<a href="${item.sk_file_url}" target="_blank" class="badge badge-success">Lihat SK</a>` : '-';
+                let masa = `${new Date(item.masa_khidmat_mulai).getFullYear()} - ${new Date(item.masa_khidmat_akhir).getFullYear()}`;
+                let namaMwc = mwcMap[item.id_mwc] || "Tidak Diketahui";
+
+                let tr = `
+                    <tr>
+                        <td>${index + 1}</td>
+                        <td style="font-weight: 600;">${item.nama_ranting}</td>
+                        <td><span class="badge badge-mwc">${namaMwc}</span></td>
+                        <td>${item.ketua}</td>
+                        <td>${masa}</td>
+                        <td>${linkSK}</td>
+                        <td>${btnHapus}</td>
+                    </tr>
+                `;
+                tbody.innerHTML += tr;
+            });
+        }
+
+        function filterTable() {
+            const query = document.getElementById('searchInput').value.toLowerCase();
+            const filtered = rantingData.filter(item => item.nama_ranting.toLowerCase().includes(query));
+            renderTable(filtered);
+        }
+
+        function openModal() { document.getElementById('dataForm').reset(); document.getElementById('formModal').classList.add('active'); }
+        function closeModal() { document.getElementById('formModal').classList.remove('active'); }
+
+        document.getElementById('dataForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            const btn = document.getElementById('btnSubmit');
+            btn.disabled = true; btn.innerHTML = '<div class="spinner"></div> Menyimpan...';
+
+            let payload = {
+                id_mwc: document.getElementById('id_mwc').value,
+                nama_ranting: document.getElementById('nama_ranting').value,
+                rais: document.getElementById('rais').value,
+                katib: document.getElementById('katib').value,
+                ketua: document.getElementById('ketua').value,
+                sekretaris: document.getElementById('sekretaris').value,
+                masa_khidmat_mulai: document.getElementById('masa_mulai').value,
+                masa_khidmat_akhir: document.getElementById('masa_akhir').value
+            };
+
+            const fileInput = document.getElementById('sk_file');
+            if (fileInput.files.length > 0) {
+                const file = fileInput.files[0];
+                if (file.size > 3 * 1024 * 1024) { 
+                    showToast("Ukuran file maksimal 3MB", true); btn.disabled = false; btn.innerHTML = 'Simpan Data'; return;
+                }
+                payload.sk_file_name = file.name;
+                payload.sk_mime_type = file.type;
+                payload.sk_file_base64 = await getBase64(file);
+            }
+
+            const res = await fetchAPI('create_ranting', payload);
+            
+            if (res && res.success) {
+                showToast("Data Ranting berhasil disimpan!"); closeModal(); loadData();
+            } else {
+                showToast(res.message, true);
+            }
+            btn.disabled = false; btn.innerHTML = 'Simpan Data';
+        });
+
+        async function hapusData(rowIdx) {
+            if(!confirm("Anda yakin ingin menghapus data ini secara permanen?")) return;
+            showToast("Menghapus data...");
+            const res = await fetchAPI('delete_ranting', { _row: rowIdx });
+            if (res && res.success) { showToast("Data terhapus."); loadData(); } else { showToast(res.message, true); }
+        }
+
+        window.addEventListener('DOMContentLoaded', initPage);
+    </script>
+</body>
+</html>
