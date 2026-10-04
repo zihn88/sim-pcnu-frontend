@@ -137,6 +137,27 @@
         </div>
     </div>
 
+    <!-- MODAL DETAIL KEPENGURUSAN -->
+    <div class="modal-overlay" id="detailModal">
+        <div class="modal-content" style="width: 450px;">
+            <div class="modal-header">
+                <span id="detailTitle">Detail Susunan Pengurus</span>
+                <button class="close-btn" onclick="closeDetailModal()">X</button>
+            </div>
+            <div>
+                <table style="width:100%; text-align:left; line-height:2;">
+                    <tr><td style="font-weight:600; width:35%;">Rais Syuriyah</td><td id="det_rais">: -</td></tr>
+                    <tr><td style="font-weight:600;">Katib</td><td id="det_katib">: -</td></tr>
+                    <tr><td style="font-weight:600;">Ketua Tanfidziyah</td><td id="det_ketua">: -</td></tr>
+                    <tr><td style="font-weight:600;">Sekretaris</td><td id="det_sekretaris">: -</td></tr>
+                </table>
+            </div>
+            <div style="text-align: right; margin-top: 24px;">
+                <button class="btn btn-primary" onclick="closeDetailModal()">Tutup</button>
+            </div>
+        </div>
+    </div>
+
     <script src="js/api.js"></script>
     <script>
         checkAuth();
@@ -183,8 +204,9 @@
 
             data.forEach((item, index) => {
                 let btnHapus = role === 'SUPERADMIN' ? `<button class="btn" style="background:var(--danger); color:white; padding:4px 8px; font-size:12px;" onclick="hapusData(${item._row})">Hapus</button>` : '';
+                let btnDetail = `<button class="btn" style="background:#3B82F6; color:white; padding:4px 8px; font-size:12px; margin-right:4px;" onclick="lihatDetail(${index})">Detail</button>`;
                 let linkSK = item.sk_file_url ? `<a href="${item.sk_file_url}" target="_blank" class="badge" style="background:#E5E7EB; color:#374151;">Lihat File</a>` : '-';
-
+                
                 // Format Masa Khidmat
                 let tglMulai = new Date(item.masa_khidmat_mulai);
                 let tglAkhir = new Date(item.masa_khidmat_akhir);
@@ -203,6 +225,7 @@
                         <td>${masa}</td>
                         <td>${statusBadge}</td>
                         <td>${linkSK}</td>
+                        <td>${btnDetail}</td>
                         <td>${btnHapus}</td>
                     </tr>
                 `;
@@ -224,6 +247,19 @@
         }
         function closeModal() {
             document.getElementById('formModal').classList.remove('active');
+        }
+
+        function lihatDetail(index) {
+            let item = mwcData[index];
+            document.getElementById('detailTitle').innerText = "Pengurus: " + item.nama_mwc;
+            document.getElementById('det_rais').innerText = ": " + item.rais;
+            document.getElementById('det_katib').innerText = ": " + item.katib;
+            document.getElementById('det_ketua').innerText = ": " + item.ketua;
+            document.getElementById('det_sekretaris').innerText = ": " + item.sekretaris;
+            document.getElementById('detailModal').classList.add('active');
+        }
+        function closeDetailModal() {
+            document.getElementById('detailModal').classList.remove('active');
         }
 
         // SUBMIT FORM
