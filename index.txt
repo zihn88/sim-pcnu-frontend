@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - SIM PCNU Gresik</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+    <div class="app-container">
+        <!-- SIDEBAR -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                SIM-PCNU Gresik
+            </div>
+            <ul class="nav-menu">
+                <li><a href="index.html" class="active">📊 Dashboard</a></li>
+                <li><a href="mwcnu.html">🏢 Data MWCNU</a></li>
+                <li><a href="ranting.html">🏠 Data Ranting NU</a></li>
+                <li><a href="surat.html">✉️ Arsip Surat</a></li>
+            </ul>
+        </aside>
+
+        <!-- MAIN CONTENT -->
+        <main class="main-content">
+            <header class="topbar">
+                <div class="page-title">
+                    <h2 style="font-size: 18px;">Dashboard Statistik</h2>
+                </div>
+                <div class="user-profile" style="display: flex; align-items: center; gap: 16px;">
+                    <div style="text-align: right;">
+                        <div id="user_name" style="font-weight: 600; font-size: 14px;">Admin</div>
+                        <div id="user_role" style="font-size: 12px; color: var(--text-muted);">Role</div>
+                    </div>
+                    <button onclick="logout()" class="btn" style="background: #F3F4F6; color: var(--danger);">Keluar</button>
+                </div>
+            </header>
+
+            <section class="content-area">
+                
+                <div class="grid-4">
+                    <div class="card">
+                        <div class="card-title">Surat Masuk</div>
+                        <div class="card-value" id="val_surat_masuk">...</div>
+                    </div>
+                    <div class="card">
+                        <div class="card-title">Surat Keluar</div>
+                        <div class="card-value" id="val_surat_keluar">...</div>
+                    </div>
+                    <div class="card">
+                        <div class="card-title">Total MWCNU</div>
+                        <div class="card-value" id="val_mwc">...</div>
+                    </div>
+                    <div class="card">
+                        <div class="card-title">Total Ranting NU</div>
+                        <div class="card-value" id="val_ranting">...</div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <h3 style="margin-bottom: 16px;">Selamat Datang di SIM-PCNU Gresik</h3>
+                    <p style="color: var(--text-muted);">Sistem Informasi Manajemen Kesekretariatan. Gunakan menu di sidebar sebelah kiri untuk mulai mengelola data organisasi dan pengarsipan surat.</p>
+                </div>
+
+            </section>
+        </main>
+    </div>
+
+    <script src="js/api.js"></script>
+    <script>
+        checkAuth(); // Proteksi Halaman
+
+        // Load Dashboard Data
+        async function loadDashboard() {
+            const res = await fetchAPI('get_dashboard');
+            if(res && res.success) {
+                document.getElementById('val_surat_masuk').innerText = res.data.surat_masuk;
+                document.getElementById('val_surat_keluar').innerText = res.data.surat_keluar;
+                document.getElementById('val_mwc').innerText = res.data.mwcnu;
+                document.getElementById('val_ranting').innerText = res.data.ranting;
+            } else {
+                showToast("Gagal memuat statistik", true);
+            }
+        }
+
+        // Eksekusi saat halaman siap
+        window.addEventListener('DOMContentLoaded', loadDashboard);
+    </script>
+</body>
+</html>

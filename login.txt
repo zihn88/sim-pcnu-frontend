@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - SIM PCNU Gresik</title>
+    <link rel="stylesheet" href="css/style.css">
+    <style>
+        .login-page { display: flex; justify-content: center; align-items: center; height: 100vh; background-color: var(--primary); }
+        .login-card { width: 400px; padding: 40px; text-align: center; }
+        .login-logo { width: 80px; margin-bottom: 16px; }
+    </style>
+</head>
+<body class="login-page">
+
+    <div class="card login-card">
+        <!-- Opsional: Ganti dengan logo NU -->
+        <h2 style="color: var(--primary); margin-bottom: 8px;">SIM-PCNU</h2>
+        <p style="color: var(--text-muted); margin-bottom: 32px; font-size: 14px;">Sistem Informasi Manajemen Kesekretariatan<br>PCNU Gresik</p>
+        
+        <form id="loginForm">
+            <div class="form-group" style="text-align: left;">
+                <label class="form-label">Username</label>
+                <input type="text" id="username" class="form-control" required autocomplete="off">
+            </div>
+            <div class="form-group" style="text-align: left; margin-bottom: 32px;">
+                <label class="form-label">Password</label>
+                <input type="password" id="password" class="form-control" required>
+            </div>
+            <button type="submit" id="btnLogin" class="btn btn-primary" style="width: 100%; height: 44px;">Masuk Aplikasi</button>
+        </form>
+    </div>
+
+    <script src="js/api.js"></script>
+    <script>
+        checkAuth(); // Redirect jika sudah punya token
+
+        document.getElementById('loginForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            const btn = document.getElementById('btnLogin');
+            btn.disabled = true;
+            btn.innerHTML = '<div class="spinner"></div> Autentikasi...';
+
+            const user = document.getElementById('username').value;
+            const pass = document.getElementById('password').value;
+
+            const res = await fetchAPI('login', { username: user, password: pass });
+
+            if (res && res.success) {
+                // Simpan sesi
+                sessionStorage.setItem('sim_token', res.data.token);
+                sessionStorage.setItem('sim_user_name', res.data.nama_lengkap);
+                sessionStorage.setItem('sim_role', res.data.role);
+                window.location.href = 'index.html';
+            } else {
+                showToast(res ? res.message : "Terjadi kesalahan", true);
+                btn.disabled = false;
+                btn.innerHTML = 'Masuk Aplikasi';
+            }
+        });
+    </script>
+</body>
+</html>
