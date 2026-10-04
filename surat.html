@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Arsip Surat - SIM PCNU Gresik</title>
+    <link rel="stylesheet" href="css/style.css">
+    <style>
+        .table-responsive { width: 100%; overflow-x: auto; }
+        .table { width: 100%; border-collapse: collapse; text-align: left; font-size: 14px; }
+        .table th, .table td { padding: 12px 16px; border-bottom: 1px solid var(--border); }
+        .table th { background-color: #F9FAFB; font-weight: 600; color: var(--text-muted); }
+        .table tr:hover { background-color: #F3F4F6; }
+        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); display: flex; justify-content: center; align-items: center; opacity: 0; visibility: hidden; transition: 0.3s; z-index: 1000; }
+        .modal-overlay.active { opacity: 1; visibility: visible; }
+        .modal-content { background: white; width: 550px; border-radius: var(--radius); padding: 24px; max-height: 90vh; overflow-y: auto; }
+        .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; font-weight: 600; font-size: 18px;}
+        .close-btn { cursor: pointer; color: var(--danger); font-weight: bold; border: none; background: none; font-size: 18px;}
+        
+        .badge { padding: 4px 8px; border-radius: 4px; font-size: 12px; font-weight: 600; }
+        .badge-success { background: #D1FAE5; color: #065F46; }
+        .badge-masuk { background: #E0E7FF; color: #3730A3; }
+        .badge-keluar { background: #FFEDD5; color: #9A3412; }
+        
+        .empty-state { text-align: center; padding: 40px; color: var(--text-muted); }
+        
+        .filter-group { display: flex; gap: 12px; }
+    </style>
+</head>
+<body>
+
+    <div class="app-container">
+        <!-- SIDEBAR -->
+        <aside class="sidebar">
+            <div class="sidebar-header">SIM-PCNU Gresik</div>
+            <ul class="nav-menu">
+                <li><a href="index.html">📊 Dashboard</a></li>
+                <li><a href="mwcnu.html">🏢 Data MWCNU</a></li>
+                <li><a href="ranting.html">🏠 Data Ranting NU</a></li>
+                <li><a href="surat.html" class="active">✉️ Arsip Surat</a></li>
+            </ul>
+        </aside>
+
+        <!-- MAIN CONTENT -->
+        <main class="main-content">
+            <header class="topbar">
+                <div class="page-title"><h2>Pengarsipan Surat</h2></div>
+                <div class="user-profile">
+                    <span id="user_name" style="font-weight: 600; margin-right:16px;">Admin</span>
+                    <button onclick="logout()" class="btn" style="background: #F3F4F6; color: var(--danger);">Keluar</button>
+                </div>
+            </header>
+
+            <section class="content-area">
+                <div class="card">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+                        
+                        <!-- FILTER BAR -->
+                        <div class="filter-group">
+                            <select id="filterJenis" class="form-control" style="width: 150px;" onchange="filterTable()">
+                                <option value="SEMUA">Semua Surat</option>
+                                <option value="MASUK">Surat Masuk</option>
+                                <option value="KELUAR">Surat Keluar</option>
+                            </select>
+                            <input type="text" id="searchInput" class="form-control" placeholder="Cari perihal atau nomor surat..." style="width: 250px;" onkeyup="filterTable()">
+                        </div>
+
+                        <button class="btn btn-primary" onclick="openModal()">+ Arsipkan Surat Baru</button>
+                    </div>
+
+                    <div class="table-responsive">
+                        <table class="table" id="dataTable">
+                            <thead>
+                                <tr>
+                                    <th>Jenis</th>
+                                    <th>Nomor Surat</th>
+                                    <th>Tgl Surat</th>
+                                    <th>Asal / Tujuan</th>
+                                    <th>Perihal</th>
+                                    <th>File PDF</th>
+                                    <th>Aksi</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tableBody">
+                                <tr><td colspan="7" style="text-align:center;"><div class="spinner" style="border-color:var(--primary); border-top-color:transparent;"></div> Memuat data...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- MODAL FORM -->
+    <div class="modal-overlay" id="formModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <span id="modalTitle">Form Arsip Surat</span>
+                <button class="close-btn" onclick="closeModal()">X</button>
+            </div>
+            <form id="dataForm">
+                <div class="form-group">
+                    <label class="form-label">Jenis Surat</label>
+                    <select id="jenis_surat" class="form-control" required onchange="ubahLabelAsalTujuan()">
+                        <option value="MASUK">Surat Masuk</option>
+                        <option value="KELUAR">Surat Keluar</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Nomor Surat</label>
+                    <input type="text" id="nomor_surat" class="form-control" placeholder="Contoh: 123/PC/A.I/D-4/08/2026" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Perihal (Ringkasan)</label>
+                    <input type="text" id="perihal" class="form-control" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label" id="label_pengirim_tujuan">Asal Pengirim</label>
+                    <input type="text" id="pengirim_tujuan" class="form-control" required>
+                </div>
+                <div style="display: flex; gap: 16px;">
+                    <div class="form-group" style="flex: 1;">
+                        <label class="form-label">Tanggal Tertera di Surat</label>
+                        <input type="date" id="tanggal_surat" class="form-control" required>
+                    </div>
+                    <div class="form-group" style="flex: 1;">
+                        <label class="form-label" id="label_tanggal_proses">Tanggal Diterima</label>
+                        <input type="date" id="tanggal_proses" class="form-control" required>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Upload Fisik Surat (PDF, Maks 3MB)</label>
+                    <input type="file" id="file_surat" class="form-control" accept="application/pdf">
+                </div>
+                
+                <div style="text-align: right; margin-top: 24px;">
+                    <button type="button" class="btn" style="background: #E5E7EB;" onclick="closeModal()">Batal</button>
+                    <button type="submit" id="btnSubmit" class="btn btn-primary">Arsipkan Surat</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script src="js/api.js"></script>
+    <script>
+        checkAuth();
+
+        const role = sessionStorage.getItem('sim_role');
+        let suratData = [];
+
+        // Dinamis mengganti label form tergantung jenis surat (Masuk / Keluar)
+        function ubahLabelAsalTujuan() {
+            const jenis = document.getElementById('jenis_surat').value;
+            document.getElementById('label_pengirim_tujuan').innerText = jenis === 'MASUK' ? 'Asal Pengirim' : 'Tujuan Surat';
+            document.getElementById('label_tanggal_proses').innerText = jenis === 'MASUK' ? 'Tanggal Diterima' : 'Tanggal Dikirim';
+        }
+
+        function getBase64(file) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.readAsDataURL(file);
+                reader.onload = () => resolve(reader.result);
+                reader.onerror = error => reject(error);
+            });
+        }
+
+        async function loadData() {
+            const tbody = document.getElementById('tableBody');
+            const res = await fetchAPI('get_surat');
+            
+            if (res && res.success) {
+                suratData = res.data;
+                // Urutkan berdasarkan ID dari yang terbaru (karena ID mengandung timestamp)
+                suratData.sort((a,b) => (a.id_surat < b.id_surat) ? 1 : ((b.id_surat < a.id_surat) ? -1 : 0));
+                renderTable(suratData);
+            } else {
+                tbody.innerHTML = `<tr><td colspan="7" class="empty-state">Gagal memuat data.</td></tr>`;
+            }
+        }
+
+        function renderTable(data) {
+            const tbody = document.getElementById('tableBody');
+            tbody.innerHTML = '';
+
+            if (data.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="7" class="empty-state">Belum ada arsip surat.</td></tr>`;
+                return;
+            }
+
+            data.forEach(item => {
+                let btnHapus = role === 'SUPERADMIN' ? `<button class="btn" style="background:var(--danger); color:white; padding:4px 8px; font-size:12px;" onclick="hapusData(${item._row})">Hapus</button>` : '';
+                let linkFile = item.file_url ? `<a href="${item.file_url}" target="_blank" class="badge badge-success">Lihat PDF</a>` : '-';
+                
+                let badgeJenis = item.jenis_surat === 'MASUK' 
+                    ? `<span class="badge badge-masuk">MASUK</span>` 
+                    : `<span class="badge badge-keluar">KELUAR</span>`;
+                
+                // Format Tgl (YYYY-MM-DD ke format lokal sederhana)
+                let tgl = new Date(item.tanggal_surat).toLocaleDateString('id-ID');
+
+                let tr = `
+                    <tr>
+                        <td>${badgeJenis}</td>
+                        <td style="font-weight: 600;">${item.nomor_surat}</td>
+                        <td>${tgl}</td>
+                        <td>${item.pengirim_tujuan}</td>
+                        <td>${item.perihal}</td>
+                        <td>${linkFile}</td>
+                        <td>${btnHapus}</td>
+                    </tr>
+                `;
+                tbody.innerHTML += tr;
+            });
+        }
+
+        function filterTable() {
+            const filterJenis = document.getElementById('filterJenis').value;
+            const query = document.getElementById('searchInput').value.toLowerCase();
+            
+            const filtered = suratData.filter(item => {
+                const matchJenis = filterJenis === 'SEMUA' ? true : item.jenis_surat === filterJenis;
+                const matchQuery = item.perihal.toLowerCase().includes(query) || item.nomor_surat.toLowerCase().includes(query);
+                return matchJenis && matchQuery;
+            });
+            
+            renderTable(filtered);
+        }
+
+        function openModal() { 
+            document.getElementById('dataForm').reset(); 
+            ubahLabelAsalTujuan(); // Reset label state
+            document.getElementById('formModal').classList.add('active'); 
+        }
+        function closeModal() { document.getElementById('formModal').classList.remove('active'); }
+
+        document.getElementById('dataForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            const btn = document.getElementById('btnSubmit');
+            btn.disabled = true; btn.innerHTML = '<div class="spinner"></div> Mengunggah...';
+
+            let payload = {
+                jenis_surat: document.getElementById('jenis_surat').value,
+                nomor_surat: document.getElementById('nomor_surat').value,
+                tanggal_surat: document.getElementById('tanggal_surat').value,
+                tanggal_terima_kirim: document.getElementById('tanggal_proses').value,
+                pengirim_tujuan: document.getElementById('pengirim_tujuan').value,
+                perihal: document.getElementById('perihal').value
+            };
+
+            const fileInput = document.getElementById('file_surat');
+            if (fileInput.files.length > 0) {
+                const file = fileInput.files[0];
+                if (file.size > 3 * 1024 * 1024) { 
+                    showToast("Ukuran file maksimal 3MB", true); btn.disabled = false; btn.innerHTML = 'Arsipkan Surat'; return;
+                }
+                payload.file_name = file.name;
+                payload.mime_type = file.type;
+                payload.file_base64 = await getBase64(file);
+            }
+
+            const res = await fetchAPI('create_surat', payload);
+            
+            if (res && res.success) {
+                showToast("Surat berhasil diarsipkan!"); closeModal(); loadData();
+            } else {
+                showToast(res.message, true);
+            }
+            btn.disabled = false; btn.innerHTML = 'Arsipkan Surat';
+        });
+
+        async function hapusData(rowIdx) {
+            if(!confirm("Anda yakin ingin menghapus arsip surat ini secara permanen?")) return;
+            showToast("Menghapus data...");
+            const res = await fetchAPI('delete_surat', { _row: rowIdx });
+            if (res && res.success) { showToast("Arsip terhapus."); loadData(); } else { showToast(res.message, true); }
+        }
+
+        window.addEventListener('DOMContentLoaded', loadData);
+    </script>
+</body>
+</html>
