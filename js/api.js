@@ -3,7 +3,7 @@
 // ========================================================
 
 // !!! GANTI DENGAN URL WEB APP DARI GOOGLE APPS SCRIPT ANDA !!!
-const API_URL = "https://script.google.com/macros/s/AKfycbwYOUR_API_ID_HERE/exec"; 
+const API_URL = "https://script.google.com/macros/s/AKfycbzFa-wH4032Li_gJLUfXhgPMOivfdMsFEYxWm97rnwi3G0nmRxDc40S-2I2o8NH943kEQ/exec"; 
 
 // Fungsi Utama Fetch API
 async function fetchAPI(action, payload = {}) {
