@@ -28,6 +28,7 @@
         .close-btn { cursor: pointer; color: var(--danger); font-weight: bold; border: none; background: none; font-size: 18px;}
         .badge { padding: 4px 8px; border-radius: 4px; font-size: 12px; font-weight: 600; }
         .badge-success { background: #D1FAE5; color: #065F46; }
+        .badge-danger { background: #FEE2E2; color: #991B1B; }
         .empty-state { text-align: center; padding: 40px; color: var(--text-muted); }
     </style>
 </head>
@@ -70,6 +71,7 @@
                                     <th>Nama MWCNU</th>
                                     <th>Ketua</th>
                                     <th>Masa Khidmat</th>
+                                    <th>Status</th>
                                     <th>SK</th>
                                     <th>Aksi</th>
                                 </tr>
@@ -171,16 +173,27 @@
             tbody.innerHTML = '';
 
             if (data.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="6" class="empty-state">Belum ada data MWCNU.</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="7" class="empty-state">Belum ada data MWCNU.</td></tr>`;
                 return;
             }
 
+            // Dapatkan waktu hari ini jam 00:00
+            let hariIni = new Date();
+            hariIni.setHours(0, 0, 0, 0);
+
             data.forEach((item, index) => {
                 let btnHapus = role === 'SUPERADMIN' ? `<button class="btn" style="background:var(--danger); color:white; padding:4px 8px; font-size:12px;" onclick="hapusData(${item._row})">Hapus</button>` : '';
-                let linkSK = item.sk_file_url ? `<a href="${item.sk_file_url}" target="_blank" class="badge badge-success">Lihat SK</a>` : '-';
+                let linkSK = item.sk_file_url ? `<a href="${item.sk_file_url}" target="_blank" class="badge" style="background:#E5E7EB; color:#374151;">Lihat File</a>` : '-';
 
-                // Format tanggal aman
-                let masa = `${new Date(item.masa_khidmat_mulai).getFullYear()} - ${new Date(item.masa_khidmat_akhir).getFullYear()}`;
+                // Format Masa Khidmat
+                let tglMulai = new Date(item.masa_khidmat_mulai);
+                let tglAkhir = new Date(item.masa_khidmat_akhir);
+                let masa = `${tglMulai.getFullYear()} - ${tglAkhir.getFullYear()}`;
+
+                // Kalkulasi Status Aktif / Mati
+                let statusBadge = (tglAkhir >= hariIni) 
+                    ? `<span class="badge badge-success">AKTIF</span>` 
+                    : `<span class="badge badge-danger">MATI</span>`;
 
                 let tr = `
                     <tr>
@@ -188,6 +201,7 @@
                         <td style="font-weight: 600;">${item.nama_mwc}</td>
                         <td>${item.ketua}</td>
                         <td>${masa}</td>
+                        <td>${statusBadge}</td>
                         <td>${linkSK}</td>
                         <td>${btnHapus}</td>
                     </tr>
